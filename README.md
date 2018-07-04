@@ -47,4 +47,6 @@ Google position :
 46.143033333 N
 Longitude: -1.169138333 W
 
+https://www.coordonnees-gps.fr/conversion-coordonnees-gps
+
 Ok ! ;) Now... trying to get Marine GPS position.

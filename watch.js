@@ -23,15 +23,33 @@ var daemon = new gpsd.Daemon({
         verbose: true
 });
 
+function calcLatitude(lat) {
+    console.log('enterien calcLatitude for Lat='+ lat);
+}
+
+function calcLongiture(lon) {
+    console.log('entering calcLongiture for Lon= ' + lon);
+}
+
 //Start       
 daemon.start(function() {
     var listener = new gpsd.Listener();
 
     listener.on('TPV', function (tpv) {
+        
         console.log("----------- TPV --------------");
+        /* 
+        DD = (Seconds/3600) + (Minutes/60) + Degrees
+        La conversion doit être menée différemment si la valeur des degrés est négative. En voici une façon :
+        DD = - (Seconds/3600) - (Minutes/60) + Degrees
+        */
         console.log(tpv);
         console.log('Latitude: ' + tpv.lat);
         console.log('Longitude: ' + tpv.lon);
+
+        // Return usuable Lat / Lon for Marine Map
+        var latitude = calcLatitude(tpv.lat);
+        var longitude = calcLongiture(tpv.lon);
     });
 
     // parse is false, so raw data get emitted.
