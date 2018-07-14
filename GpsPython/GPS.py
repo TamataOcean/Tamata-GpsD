@@ -1,12 +1,14 @@
 import serial
 import os
+from datetime import datetime
+
 
 firstFixFlag = False # this will go true after the first GPS fix.
 firstFixDate = ""
 
 # Set up serial:
 ser = serial.Serial(
-    port='/dev/ttyUSB1',\
+    port='/dev/ttyUSB0',\
     baudrate=4800,\
     parity=serial.PARITY_NONE,\
     stopbits=serial.STOPBITS_ONE,\
@@ -63,16 +65,32 @@ while True:
                 firstFixDate = gpsData['fix_date'] + "-" + gpsData['fix_time']
                 firstFixFlag = True
             else: # write the data to a simple log file and then the raw data as well:
-                with open("/home/pi/code/Tamata-GpsD/GpsPython/log/" + firstFixDate +"-simple-log.txt", "a") as myfile:
-                    myfile.write(
-                        gpsData['fix_date'] + 
-                        "," + gpsData['fix_time'] + 
-                        ","+ str(gpsData['latitude'] ) + 
-                        ","+ str(gpsData['longitude'] ) + 
-                        "," + str(gpsData['speed']) +
-                        ","+ str(gpsData['true_course'] ) + 
-                        "," + str(gpsData['decimal_latitude']) + 
-                        "," + str(gpsData['decimal_longitude']) + 
-                        "\n")
+                cus_date = datetime.strptime(gpsData['fix_date'], "%d%m%Y").date()
+
+                print gpsData['decimal_longitude']
+                print gpsData['decimal_latitude']
+                print "docker exec -u postgres pi_postgis_1 psql tamatatracking -c "
+                    # "values ( '" + gpsData['fix_date'] +"','"+ gpsData['fix_time'] + "','" + gpsData['decimal_longitude'] +"',"+ gpsData['decimal_latitude'] + " , st_setsrid( st_makepoint( " + gpsData['decimal_longitude'] +","+ gpsData['decimal_latitude'] +" ), 4326 ) );\" ")
+                print "\"insert into trame ( jour, heure, latitude, longitude, geom ) " 
+                print "values ( '"+gpsData['fix_date'] +"' ,'"+ gpsData['fix_time']+"',"+gpsData['latitude']+","+ gpsData['longitude']+",st_setsrid( st_makepoint( "+ str( gpsData['decimal_longitude'] ) +","+ str(gpsData['decimal_latitude']) +" ), 4326 ) );\" "
+                
+                os.system("docker exec -u postgres pi_postgis_1 psql tamatatracking -c " +
+                    # "values ( '" + gpsData['fix_date'] +"','"+ gpsData['fix_time'] + "','" + gpsData['decimal_longitude'] +"',"+ gpsData['decimal_latitude'] + " , st_setsrid( st_makepoint( " + gpsData['decimal_longitude'] +","+ gpsData['decimal_latitude'] +" ), 4326 ) );\" ")
+                    "\"insert into trame ( jour, heure, latitude, longitude, geom ) " + 
+                    "values ( current_date ,'"+ gpsData['fix_time']+"',"+str(gpsData['decimal_latitude'])+","+ str(gpsData['decimal_longitude'])+",st_setsrid( st_makepoint( "+ str( gpsData['decimal_longitude']) +","+ str(gpsData['decimal_latitude']) +" ), 4326 ) );\" ")
+                #with open("/home/pi/code/Tamata-GpsD/GpsPython/log/" + firstFixDate +"-simple-log.txt", "a") as myfile:
+                #    myfile.write(
+                        # gpsData['fix_date'] + 
+                        # "," + gpsData['fix_time'] + 
+                        # ","+ str(gpsData['latitude'] ) + 
+                        # ","+ str(gpsData['longitude'] ) + 
+                        # "," + str(gpsData['speed']) +
+                        # ","+ str(gpsData['true_course'] ) + 
+                        # "," + str(gpsData['decimal_latitude']) + 
+                        # "," + str(gpsData['decimal_longitude']) + 
+                        # "\n")
+                # Data to insert 
+                # EXEMPLE : 
+                
                 # with open("/home/pi/code/Tamata-GpsD/GpsPython/" + firstFixDate +"-gprmc-raw-log.txt", "a") as myfile:
                     # myfile.write(line)
